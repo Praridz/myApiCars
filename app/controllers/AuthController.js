@@ -7,19 +7,19 @@ const CONFIG = require('../config/config');
 //password
 
 function login(req, res) {
-    let username = req.body.username;
+    let email = req.body.email;
     let password = req.body.password;
 
-    User.findOne({ username }).then(user => { // se puede solo username
+    User.findOne({ email }).then(user => { // se puede solo username
         if (!user) res.status(404).send({ message: "El usuario no existe" });
         //si existe, hago mi logica de login
         bcrypt.compare(password, user.password)
             .then(match => {
                 if (match) {
                     payload = { //se debe meter fecha de entrega
-                        username: user.username,
                         email: user.email,
                         name: user.name,
+                        _id: user._id,
                         role: user.role
                     }
                     //acceso con web token npm i jsonwebtoken
