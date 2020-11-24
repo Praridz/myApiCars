@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const Product = require('./routes/product');
 const User = require('./routes/user');
 const Auth = require('./routes/auth');
+const Owner = require('./routes/owner');
 const AuthToken = require('./middleware/AuthToken')
 
 const app = express();
@@ -25,8 +26,9 @@ app.use('/product', Product);
 // creo el path primero /user y ya lo que sigue de la , es el product que puede variar
 app.use('/user', User);
 // crea el path /auth
-
 app.use('/auth', Auth);
+//crea el path owner
+app.use('/owner', Owner);
 
 
 module.exports = app;

@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Owner = require('../models/Owner');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const CONFIG = require('../config/config');
@@ -17,13 +18,13 @@ function login(req, res) {
             .then(match => {
                 if (match) {
                     payload = { //se debe meter fecha de entrega
-                        email: user.email,
-                        name: user.name,
-                        _id: user._id,
-                        role: user.role
-                    }
-                    //acceso con web token npm i jsonwebtoken
-                    jwt.sign(payload, CONFIG.SECRET_TOKEN, function (error, token) {
+                            email: user.email,
+                            name: user.name,
+                            _id: user._id,
+                            role: user.role
+                        }
+                        //acceso con web token npm i jsonwebtoken
+                    jwt.sign(payload, CONFIG.SECRET_TOKEN, function(error, token) {
                         if (error) {
                             res.status(500).send({ error });
                         } else {
@@ -32,7 +33,7 @@ function login(req, res) {
                     });
 
                 } else {
-                    res.status(200).send({ message: "Password mala" });//no doy acceso
+                    res.status(200).send({ message: "Password mala" }); //no doy acceso
                 }
 
             }).catch(error => { //se le envia tambien el status para mejorar practicas
@@ -46,4 +47,32 @@ function login(req, res) {
 
 }
 
-module.exports = login; 
+function loginToken(req, res) {
+
+    let tokken = req.body.token;
+    let respuesta = jwt.verify(tokken, 'JDPAUTOS');
+    let email = respuesta.email;
+    Owner.findOne({ email }).then(user => { // se puede solo username
+        if (!user) res.status(404).send({ message: "El email no existe" });
+        //verificar que el token sea igual al que esta en la base de datos
+        if (user.token == tokken) {
+            //si la fecha de caducidad es mayor a la fecha de actual, entonces es valido
+            if (Date.now() < respuesta.fechaCaduca) {
+                res.status(200).send({ message: "accedido" });
+            } else {
+                res.status(404).send({ message: "El token ha caducado" });
+            }
+        } else {
+            res.status(404).send({ message: "Este token es antiguo" });
+        }
+    }).catch(error => { //este error no es si no existe el username en la db
+        console.log(error);
+        res.status(500).send({ error });
+    });
+
+}
+
+module.exports = {
+    login,
+    loginToken
+};
